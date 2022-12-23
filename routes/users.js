@@ -125,4 +125,23 @@ router.delete(
 	}
 );
 
+/** POST /[username]/jobs/[id]  =>  { applied: jobId }
+ *
+ * Authorization required: login
+ **/
+
+router.post(
+	"/:username/jobs/:id",
+	ensureUserOwnership,
+	async function (req, res, next) {
+		try {
+			const { username, id } = req.params;
+			await User.applyToJob(username, +id);
+			return res.status(201).json({ applied: +id });
+		} catch (err) {
+			return next(err);
+		}
+	}
+);
+
 module.exports = router;

@@ -370,3 +370,49 @@ describe("DELETE /users/:username", function () {
 		expect(resp.statusCode).toEqual(404);
 	});
 });
+
+/************************************** POST /users/:username/jobs/:id */
+
+describe("POST /users/:username/jobs/:id", function () {
+	test("works for admin", async function () {
+		const resp = await request(app)
+			.post(`/users/u3/jobs/1`)
+			.set("authorization", `Bearer ${u1Token}`);
+		expect(resp.statusCode).toEqual(201);
+		expect(resp.body).toEqual({ applied: 1 });
+
+		const results = await db.query(`
+		SELECT username, job_id AS "jobId" FROM applications WHERE username='u3' AND job_id=1`);
+
+		expect(results.rows[0]).toEqual({ username: "u3", jobId: 1 });
+	});
+	test("works for users own profile", async function () {
+		const resp = await request(app)
+			.post(`/users/u2/jobs/2`)
+			.set("authorization", `Bearer ${u2Token}`);
+		expect(resp.statusCode).toEqual(201);
+		expect(resp.body).toEqual({ applied: 2 });
+	});
+	test("unauth when not admin", async function () {
+		const resp = await request(app)
+			.post(`/users/u3/jobs/3`)
+			.set("authorization", `Bearer ${u2Token}`);
+		expect(resp.statusCode).toEqual(401);
+	});
+	test("unauth for anon", async function () {
+		const resp = await request(app).post(`/users/u1/jobs/1`);
+		expect(resp.statusCode).toEqual(401);
+	});
+	test("not found if username invalid", async function () {
+		const resp = await request(app)
+			.post(`/users/none/jobs/1`)
+			.set("authorization", `Bearer ${u1Token}`);
+		expect(resp.statusCode).toEqual(404);
+	});
+	test("not found if jobId invalid", async function () {
+		const resp = await request(app)
+			.post(`/users/u2/jobs/0`)
+			.set("authorization", `Bearer ${u1Token}`);
+		expect(resp.statusCode).toEqual(404);
+	});
+});
