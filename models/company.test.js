@@ -166,7 +166,7 @@ describe("findAll", function () {
 /************************************** get */
 
 describe("get", function () {
-	test("works", async function () {
+	test("works for company with jobs", async function () {
 		let company = await Company.get("c1");
 		expect(company).toEqual({
 			handle: "c1",
@@ -174,6 +174,32 @@ describe("get", function () {
 			description: "Desc1",
 			numEmployees: 1,
 			logoUrl: "http://c1.img",
+			jobs: [
+				{
+					id: expect.any(Number),
+					title: "J1",
+					salary: 100000,
+					equity: "0",
+					companyHandle: "c1",
+				},
+			],
+		});
+	});
+
+	test("works for company without jobs", async function () {
+		await db.query(
+			`INSERT INTO companies
+				(handle, name, description, num_employees, logo_url)
+				VALUES ('new', 'NEW', 'desc-new', 1, 'http://new.com')`
+		);
+
+		let company = await Company.get("new");
+		expect(company).toEqual({
+			handle: "new",
+			name: "NEW",
+			description: "desc-new",
+			numEmployees: 1,
+			logoUrl: "http://new.com",
 		});
 	});
 

@@ -209,19 +209,34 @@ describe("GET /companies/:handle", function () {
 				description: "Desc1",
 				numEmployees: 1,
 				logoUrl: "http://c1.img",
+				jobs: [
+					{
+						id: expect.any(Number),
+						title: "J1",
+						salary: 100000,
+						equity: "0",
+						companyHandle: "c1",
+					},
+				],
 			},
 		});
 	});
 
 	test("works for anon: company w/o jobs", async function () {
-		const resp = await request(app).get(`/companies/c2`);
+		await db.query(
+			`INSERT INTO companies
+				(handle, name, description, num_employees, logo_url)
+				VALUES ('new', 'NEW', 'desc-new', 1, 'http://new.com')`
+		);
+
+		const resp = await request(app).get(`/companies/new`);
 		expect(resp.body).toEqual({
 			company: {
-				handle: "c2",
-				name: "C2",
-				description: "Desc2",
-				numEmployees: 2,
-				logoUrl: "http://c2.img",
+				handle: "new",
+				name: "NEW",
+				description: "desc-new",
+				numEmployees: 1,
+				logoUrl: "http://new.com",
 			},
 		});
 	});
