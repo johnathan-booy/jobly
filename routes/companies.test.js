@@ -11,6 +11,7 @@ const {
 	commonAfterEach,
 	commonAfterAll,
 	u1Token,
+	u2Token,
 } = require("./_testCommon");
 
 beforeAll(commonBeforeAll);
@@ -29,7 +30,7 @@ describe("POST /companies", function () {
 		numEmployees: 10,
 	};
 
-	test("ok for users", async function () {
+	test("ok for admin", async function () {
 		const resp = await request(app)
 			.post("/companies")
 			.send(newCompany)
@@ -38,6 +39,14 @@ describe("POST /companies", function () {
 		expect(resp.body).toEqual({
 			company: newCompany,
 		});
+	});
+
+	test("unauth when not admin", async function () {
+		const resp = await request(app)
+			.post("/companies")
+			.send(newCompany)
+			.set("authorization", `Bearer ${u2Token}`);
+		expect(resp.statusCode).toEqual(401);
 	});
 
 	test("bad request with missing data", async function () {
@@ -95,7 +104,7 @@ describe("GET /companies", function () {
 		});
 	});
 
-	test("ok with name filter", async function () {
+	test("works with name filter", async function () {
 		const resp = await request(app).get("/companies?name=2");
 		expect(resp.body).toEqual({
 			companies: [
@@ -110,7 +119,7 @@ describe("GET /companies", function () {
 		});
 	});
 
-	test("ok with minEmployees filter", async function () {
+	test("works with minEmployees filter", async function () {
 		const resp = await request(app).get("/companies?minEmployees=2");
 		expect(resp.body).toEqual({
 			companies: [
@@ -132,7 +141,7 @@ describe("GET /companies", function () {
 		});
 	});
 
-	test("ok with maxEmployees filter", async function () {
+	test("works with maxEmployees filter", async function () {
 		const resp = await request(app).get("/companies?maxEmployees=2");
 		expect(resp.body).toEqual({
 			companies: [
@@ -154,7 +163,7 @@ describe("GET /companies", function () {
 		});
 	});
 
-	test("ok with all filters", async function () {
+	test("works with all filters", async function () {
 		const resp = await request(app).get(
 			"/companies?name=2&minEmployees=2&maxEmployees=2"
 		);
@@ -226,7 +235,7 @@ describe("GET /companies/:handle", function () {
 /************************************** PATCH /companies/:handle */
 
 describe("PATCH /companies/:handle", function () {
-	test("works for users", async function () {
+	test("works for admin", async function () {
 		const resp = await request(app)
 			.patch(`/companies/c1`)
 			.send({
@@ -242,6 +251,16 @@ describe("PATCH /companies/:handle", function () {
 				logoUrl: "http://c1.img",
 			},
 		});
+	});
+
+	test("unauth when not admin", async function () {
+		const resp = await request(app)
+			.patch(`/companies/c1`)
+			.send({
+				name: "C1-new",
+			})
+			.set("authorization", `Bearer ${u2Token}`);
+		expect(resp.statusCode).toEqual(401);
 	});
 
 	test("unauth for anon", async function () {
@@ -285,11 +304,18 @@ describe("PATCH /companies/:handle", function () {
 /************************************** DELETE /companies/:handle */
 
 describe("DELETE /companies/:handle", function () {
-	test("works for users", async function () {
+	test("works for admin", async function () {
 		const resp = await request(app)
 			.delete(`/companies/c1`)
 			.set("authorization", `Bearer ${u1Token}`);
 		expect(resp.body).toEqual({ deleted: "c1" });
+	});
+
+	test("unauth when not admin", async function () {
+		const resp = await request(app)
+			.delete(`/companies/c1`)
+			.set("authorization", `Bearer ${u2Token}`);
+		expect(resp.statusCode).toEqual(401);
 	});
 
 	test("unauth for anon", async function () {
