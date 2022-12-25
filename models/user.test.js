@@ -132,7 +132,7 @@ describe("findAll", function () {
 /************************************** get */
 
 describe("get", function () {
-	test("works", async function () {
+	test("works: without jobs", async function () {
 		let user = await User.get("u1");
 		expect(user).toEqual({
 			username: "u1",
@@ -140,6 +140,24 @@ describe("get", function () {
 			lastName: "U1L",
 			email: "u1@email.com",
 			isAdmin: false,
+		});
+	});
+
+	test("works: with jobs", async function () {
+		await db.query(
+			`INSERT INTO applications
+			(username, job_id)
+			VALUES ('u1', 1), ('u1', 2)`
+		);
+
+		let user = await User.get("u1");
+		expect(user).toEqual({
+			username: "u1",
+			firstName: "U1F",
+			lastName: "U1L",
+			email: "u1@email.com",
+			isAdmin: false,
+			jobs: [1, 2],
 		});
 	});
 
